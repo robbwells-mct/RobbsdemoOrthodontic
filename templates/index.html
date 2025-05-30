@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="jumbotron bg-primary text-white rounded p-5 mb-4">
+            <h1 class="display-4">
+                <i class="fas fa-stethoscope me-3"></i>
+                Welcome to NP Practice Scheduler
+            </h1>
+            <p class="lead">Streamline your nurse practitioner practice with our comprehensive scheduling solution.</p>
+            <hr class="my-4" style="border-color: rgba(255,255,255,0.3);">
+            <p>Manage patients, schedule appointments, and track your daily schedule all in one place.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-day fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Daily Schedule</h5>
+                <p class="card-text">View and manage your appointments for any day. See patient details, appointment times, and status at a glance.</p>
+                <a href="{{ url_for('schedule') }}" class="btn btn-primary">
+                    <i class="fas fa-eye me-2"></i>View Schedule
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Patient Management</h5>
+                <p class="card-text">Add, edit, and search through your patient database. Keep track of contact information and insurance details.</p>
+                <a href="{{ url_for('patients') }}" class="btn btn-success">
+                    <i class="fas fa-user-plus me-2"></i>Manage Patients
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-plus-circle fa-3x text-info mb-3"></i>
+                <h5 class="card-title">Schedule Appointment</h5>
+                <p class="card-text">Quickly schedule new appointments with existing patients. Set time, duration, and appointment reason.</p>
+                <a href="{{ url_for('appointments') }}" class="btn btn-info">
+                    <i class="fas fa-calendar-plus me-2"></i>New Appointment
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Quick Start Guide
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user-plus text-success me-2"></i>Getting Started</h6>
+                        <ol>
+                            <li>Start by adding patients to your database</li>
+                            <li>Include their contact information and insurance details</li>
+                            <li>Use the search feature to quickly find patients</li>
+                        </ol>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-calendar-plus text-info me-2"></i>Scheduling</h6>
+                        <ol>
+                            <li>Schedule appointments with existing patients</li>
+                            <li>Set appointment duration and reason</li>
+                            <li>View your daily schedule and update appointment status</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

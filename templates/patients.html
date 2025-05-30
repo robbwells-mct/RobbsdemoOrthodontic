@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Patients - NP Practice Scheduler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-users me-2"></i>Patient Management
+                </h5>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#patientModal" onclick="clearPatientForm()">
+                    <i class="fas fa-user-plus me-2"></i>Add Patient
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- Search Bar -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" id="searchInput" 
+                                   placeholder="Search by name, phone, or email..." 
+                                   value="{{ search }}" onkeyup="searchPatients()">
+                        </div>
+                    </div>
+                </div>
+
+                {% if patients %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Date of Birth</th>
+                                <th>Insurance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for patient in patients %}
+                            <tr>
+                                <td>{{ patient.patient_id }}</td>
+                                <td><strong>{{ patient.name }}</strong></td>
+                                <td>{{ patient.phone }}</td>
+                                <td>{{ patient.email }}</td>
+                                <td>{{ patient.dob }}</td>
+                                <td>{{ patient.insurance }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="editPatient({{ patient.patient_id }}, '{{ patient.name }}', '{{ patient.phone }}', '{{ patient.email }}', '{{ patient.dob }}', '{{ patient.insurance }}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="deletePatient({{ patient.patient_id }}, '{{ patient.name }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">
+                        {% if search %}
+                            No patients found matching "{{ search }}"
+                        {% else %}
+                            No patients in database
+                        {% endif %}
+                    </h5>
+                    <p class="text-muted">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#patientModal" onclick="clearPatientForm()">
+                            <i class="fas fa-user-plus me-2"></i>Add Your First Patient
+                        </button>
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Modal -->
+<div class="modal fade" id="patientModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="patientModalTitle">Add Patient</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="patientForm">
+                    <input type="hidden" id="patientId">
+                    <div class="mb-3">
+                        <label for="patientName" class="form-label">Name *</label>
+                        <input type="text" class="form-control" id="patientName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="patientPhone" class="form-label">Phone</label>
+                        <input type="tel" class="form-control" id="patientPhone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="patientEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="patientEmail">
+                    </div>
+                    <div class="mb-3">
+                        <label for="patientDob" class="form-label">Date of Birth</label>
+                        <input type="date" class="form-control" id="patientDob">
+                    </div>
+                    <div class="mb-3">
+                        <label for="patientInsurance" class="form-label">Insurance</label>
+                        <input type="text" class="form-control" id="patientInsurance">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="savePatient()">Save Patient</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete patient <strong id="deletePatientName"></strong>?</p>
+                <p class="text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">Delete Patient</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let editingPatientId = null;
+let deletingPatientId = null;
+
+function clearPatientForm() {
+    document.getElementById('patientModalTitle').textContent = 'Add Patient';
+    document.getElementById('patientForm').reset();
+    document.getElementById('patientId').value = '';
+    editingPatientId = null;
+}
+
+function editPatient(id, name, phone, email, dob, insurance) {
+    document.getElementById('patientModalTitle').textContent = 'Edit Patient';
+    document.getElementById('patientId').value = id;
+    document.getElementById('patientName').value = name;
+    document.getElementById('patientPhone').value = phone;
+    document.getElementById('patientEmail').value = email;
+    document.getElementById('patientDob').value = dob;
+    document.getElementById('patientInsurance').value = insurance;
+    editingPatientId = id;
+    
+    const modal = new bootstrap.Modal(document.getElementById('patientModal'));
+    modal.show();
+}
+
+function savePatient() {
+    const name = document.getElementById('patientName').value.trim();
+    if (!name) {
+        showError('Name is required');
+        return;
+    }
+    
+    const patientData = {
+        name: name,
+        phone: document.getElementById('patientPhone').value.trim(),
+        email: document.getElementById('patientEmail').value.trim(),
+        dob: document.getElementById('patientDob').value,
+        insurance: document.getElementById('patientInsurance').value.trim()
+    };
+    
+    const url = editingPatientId ? `/api/patients/${editingPatientId}` : '/api/patients';
+    const method = editingPatientId ? 'PUT' : 'POST';
+    
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(patientData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess(editingPatientId ? 'Patient updated successfully' : 'Patient added successfully');
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('patientModal'));
+            modal.hide();
+            // Refresh page
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showError(data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showError('Failed to save patient');
+    });
+}
+
+function deletePatient(id, name) {
+    deletingPatientId = id;
+    document.getElementById('deletePatientName').textContent = name;
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+function confirmDelete() {
+    fetch(`/api/patients/${deletingPatientId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('Patient deleted successfully');
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+            modal.hide();
+            // Refresh page
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showError(data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showError('Failed to delete patient');
+    });
+}
+
+function searchPatients() {
+    const search = document.getElementById('searchInput').value;
+    const url = new URL(window.location);
+    if (search) {
+        url.searchParams.set('search', search);
+    } else {
+        url.searchParams.delete('search');
+    }
+    
+    // Debounce the search
+    clearTimeout(window.searchTimeout);
+    window.searchTimeout = setTimeout(() => {
+        window.location.href = url.toString();
+    }, 500);
+}
+</script>
+{% endblock %}

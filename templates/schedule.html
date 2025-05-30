@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}{% if view_type == 'range' %}4-Week Schedule{% else %}Daily Schedule{% endif %} - NP Practice Scheduler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    {% if view_type == 'range' %}
+                    <i class="fas fa-calendar-week me-2"></i>4-Week Schedule
+                    {% else %}
+                    <i class="fas fa-calendar-day me-2"></i>Daily Schedule
+                    {% endif %}
+                </h5>
+                <div class="d-flex align-items-center">
+                    <!-- View Type Toggle -->
+                    <div class="btn-group me-3" role="group">
+                        <button type="button" class="btn btn-outline-primary {% if view_type != 'range' %}active{% endif %}" onclick="switchView('day')">
+                            <i class="fas fa-calendar-day me-1"></i>Day
+                        </button>
+                        <button type="button" class="btn btn-outline-primary {% if view_type == 'range' %}active{% endif %}" onclick="switchView('range')">
+                            <i class="fas fa-calendar-week me-1"></i>4 Weeks
+                        </button>
+                    </div>
+                    
+                    {% if view_type != 'range' %}
+                    <label for="scheduleDate" class="form-label me-2 mb-0">Date:</label>
+                    <input type="date" id="scheduleDate" class="form-control me-2" value="{{ selected_date }}" style="width: auto;">
+                    {% endif %}
+                    
+                    <button class="btn btn-outline-primary me-2" onclick="setToday()">
+                        <i class="fas fa-calendar-day me-1"></i>Today
+                    </button>
+                    <button class="btn btn-primary" onclick="refreshSchedule()">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if view_type == 'range' %}
+                    <!-- Range View (4 weeks) -->
+                    {% if range_appointments %}
+                        {% for date in range_appointments|dictsort %}
+                        <div class="mb-4">
+                            <h6 class="text-primary border-bottom pb-2">
+                                <i class="fas fa-calendar me-2"></i>{{ date[0] }} 
+                                <small class="text-muted">({{ date[0]|strftime('%A') }})</small>
+                                <span class="badge bg-primary ms-2">{{ date[1]|length }} appointment{% if date[1]|length != 1 %}s{% endif %}</span>
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Patient</th>
+                                            <th>Phone</th>
+                                            <th>Reason</th>
+                                            <th>Duration</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for apt in date[1] %}
+                                        <tr>
+                                            <td><strong>{{ apt.time }}</strong></td>
+                                            <td>{{ apt.patient_name }}</td>
+                                            <td>{{ apt.patient_phone }}</td>
+                                            <td>{{ apt.reason }}</td>
+                                            <td>{{ apt.duration }} min</td>
+                                            <td>
+                                                <span class="badge bg-{% if apt.status == 'Scheduled' %}primary{% elif apt.status == 'Confirmed' %}success{% elif apt.status == 'Completed' %}secondary{% elif apt.status == 'No Show' %}danger{% else %}warning{% endif %}">
+                                                    {{ apt.status }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary" onclick="editAppointment({{ apt.apt_id }})">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No appointments scheduled for the next 4 weeks</h5>
+                            <p class="text-muted">
+                                <a href="{{ url_for('appointments') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Schedule an Appointment
+                                </a>
+                            </p>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <!-- Single Day View -->
+                    {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Phone</th>
+                                    <th>Reason</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for apt in appointments %}
+                                <tr>
+                                    <td><strong>{{ apt.time }}</strong></td>
+                                    <td>{{ apt.patient_name }}</td>
+                                    <td>{{ apt.patient_phone }}</td>
+                                    <td>{{ apt.reason }}</td>
+                                    <td>{{ apt.duration }} min</td>
+                                    <td>
+                                        <span class="badge bg-{% if apt.status == 'Scheduled' %}primary{% elif apt.status == 'Confirmed' %}success{% elif apt.status == 'Completed' %}secondary{% elif apt.status == 'No Show' %}danger{% else %}warning{% endif %}">
+                                            {{ apt.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="editAppointment({{ apt.apt_id }})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No appointments scheduled for {{ selected_date }}</h5>
+                        <p class="text-muted">
+                            <a href="{{ url_for('appointments') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Schedule an Appointment
+                            </a>
+                        </p>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Details Modal -->
+<div class="modal fade" id="appointmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Appointment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="appointmentDetails">
+                    <!-- Content will be loaded here -->
+                </div>
+                <form id="appointmentForm">
+                    <input type="hidden" id="aptId">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="aptStatus" class="form-label">Status</label>
+                            <select class="form-select" id="aptStatus">
+                                <option value="Scheduled">Scheduled</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Completed">Completed</option>
+                                <option value="No Show">No Show</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label for="aptNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="aptNotes" rows="4"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveAppointment()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function setToday() {
+    const today = new Date().toISOString().split('T')[0];
+    {% if view_type != 'range' %}
+    document.getElementById('scheduleDate').value = today;
+    {% endif %}
+    refreshSchedule();
+}
+
+function switchView(viewType) {
+    const currentDate = {% if view_type != 'range' %}document.getElementById('scheduleDate').value{% else %}'{{ selected_date }}'{% endif %};
+    window.location.href = `{{ url_for('schedule') }}?view=${viewType}&date=${currentDate}`;
+}
+
+function refreshSchedule() {
+    {% if view_type == 'range' %}
+    const currentDate = '{{ selected_date }}';
+    window.location.href = `{{ url_for('schedule') }}?view=range&date=${currentDate}`;
+    {% else %}
+    const date = document.getElementById('scheduleDate').value;
+    window.location.href = `{{ url_for('schedule') }}?date=${date}`;
+    {% endif %}
+}
+
+function editAppointment(aptId) {
+    fetch(`/api/appointments/${aptId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const apt = data.appointment;
+                const patient = apt.patient;
+                
+                // Populate appointment details
+                document.getElementById('appointmentDetails').innerHTML = `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">Patient Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Name:</strong> ${patient.name}</p>
+                            <p><strong>Phone:</strong> ${patient.phone}</p>
+                            <p><strong>Date:</strong> ${apt.date} at ${apt.time}</p>
+                            <p><strong>Reason:</strong> ${apt.reason}</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Populate form
+                document.getElementById('aptId').value = apt.apt_id;
+                document.getElementById('aptStatus').value = apt.status;
+                document.getElementById('aptNotes').value = apt.notes;
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+                modal.show();
+            } else {
+                showError(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError('Failed to load appointment details');
+        });
+}
+
+function saveAppointment() {
+    const aptId = document.getElementById('aptId').value;
+    const status = document.getElementById('aptStatus').value;
+    const notes = document.getElementById('aptNotes').value;
+    
+    fetch(`/api/appointments/${aptId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            status: status,
+            notes: notes
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('Appointment updated successfully');
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
+            modal.hide();
+            // Refresh page
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showError(data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showError('Failed to update appointment');
+    });
+}
+
+// Auto-refresh when date changes (only for single day view)
+{% if view_type != 'range' %}
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('scheduleDate').addEventListener('change', refreshSchedule);
+});
+{% endif %}
+</script>
+{% endblock %}

@@ -1,0 +1,27 @@
+{
+  "patients": {
+    "1": {
+      "patient_id": 1,
+      "name": "Angela Wells",
+      "phone": "6155337189",
+      "email": "robbmwells@gmail.com",
+      "dob": "2000-01-01",
+      "insurance": "",
+      "notes": ""
+    }
+  },
+  "appointments": {
+    "1": {
+      "apt_id": 1,
+      "patient_id": 1,
+      "date": "2025-06-04",
+      "time": "08:00",
+      "duration": 30,
+      "reason": "Annual Physical",
+      "status": "Scheduled",
+      "notes": ""
+    }
+  },
+  "next_patient_id": 2,
+  "next_apt_id": 2
+}

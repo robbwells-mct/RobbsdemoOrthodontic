@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}New Appointment - NP Practice Scheduler{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar-plus me-2"></i>Schedule New Appointment
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if patients %}
+                <form id="appointmentForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="aptPatient" class="form-label">Patient *</label>
+                            <select class="form-select" id="aptPatient" required>
+                                <option value="">Select a patient...</option>
+                                {% for patient in patients %}
+                                <option value="{{ patient.patient_id }}">{{ patient.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="aptDate" class="form-label">Date *</label>
+                            <input type="date" class="form-control" id="aptDate" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="aptTime" class="form-label">Time *</label>
+                            <select class="form-select" id="aptTime" required>
+                                <option value="">Select time...</option>
+                                {% for time in time_slots %}
+                                <option value="{{ time }}">{{ time }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="aptDuration" class="form-label">Duration (minutes)</label>
+                            <select class="form-select" id="aptDuration">
+                                <option value="15">15 minutes</option>
+                                <option value="30" selected>30 minutes</option>
+                                <option value="45">45 minutes</option>
+                                <option value="60">60 minutes</option>
+                                <option value="90">90 minutes</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="aptReason" class="form-label">Reason for Visit</label>
+                        <select class="form-select" id="aptReason">
+                            <option value="">Select reason...</option>
+                            <option value="Annual Physical">Annual Physical</option>
+                            <option value="Follow-up">Follow-up</option>
+                            <option value="Sick Visit">Sick Visit</option>
+                            <option value="Vaccination">Vaccination</option>
+                            <option value="Consultation">Consultation</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" onclick="clearForm()">
+                            <i class="fas fa-times me-2"></i>Clear Form
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-calendar-check me-2"></i>Schedule Appointment
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Patients Available</h5>
+                    <p class="text-muted">You need to add patients before scheduling appointments.</p>
+                    <a href="{{ url_for('patients') }}" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>Add Patients
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if patients %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Quick Tips
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        All required fields must be filled before scheduling
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Default appointment duration is 30 minutes
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        You can edit appointment details from the daily schedule
+                    </li>
+                    <li>
+                        <i class="fas fa-check text-success me-2"></i>
+                        Time slots are available from 8:00 AM to 6:00 PM
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Set default date to today
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('aptDate').value = today;
+});
+
+// Handle form submission
+document.getElementById('appointmentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const patientId = document.getElementById('aptPatient').value;
+    const date = document.getElementById('aptDate').value;
+    const time = document.getElementById('aptTime').value;
+    const duration = document.getElementById('aptDuration').value;
+    const reason = document.getElementById('aptReason').value;
+    
+    if (!patientId || !date || !time) {
+        showError('Please fill in all required fields');
+        return;
+    }
+    
+    const appointmentData = {
+        patient_id: patientId,
+        date: date,
+        time: time,
+        duration: duration,
+        reason: reason
+    };
+    
+    fetch('/api/appointments', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(appointmentData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('Appointment scheduled successfully!');
+            clearForm();
+            // Redirect to schedule after a delay
+            setTimeout(() => {
+                window.location.href = `{{ url_for('schedule') }}?date=${date}`;
+            }, 2000);
+        } else {
+            showError(data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showError('Failed to schedule appointment');
+    });
+});
+
+function clearForm() {
+    document.getElementById('appointmentForm').reset();
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('aptDate').value = today;
+    document.getElementById('aptDuration').value = '30';
+}
+
+// Format time display in dropdown
+document.addEventListener('DOMContentLoaded', function() {
+    const timeSelect = document.getElementById('aptTime');
+    Array.from(timeSelect.options).forEach(option => {
+        if (option.value) {
+            const [hours, minutes] = option.value.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            option.text = `${displayHour}:${minutes} ${ampm}`;
+        }
+    });
+});
+</script>
+{% endblock %}
