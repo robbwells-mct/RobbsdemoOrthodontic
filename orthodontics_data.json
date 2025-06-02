@@ -1,0 +1,84 @@
+{
+  "patients": {
+    "1": {
+      "patient_id": "1",
+      "first_name": "John",
+      "last_name": "Smith",
+      "date_of_birth": "1990-05-15",
+      "phone": "(555) 123-4567",
+      "email": "john.smith@email.com",
+      "address": "123 Main St, City, State 12345",
+      "emergency_contact": "Jane Smith",
+      "emergency_phone": "(555) 123-4568",
+      "insurance_provider": "Dental Plus Insurance",
+      "insurance_id": "DP123456789",
+      "medical_history": "No significant medical history",
+      "allergies": "None known",
+      "referral_source": "Dr. Johnson",
+      "created_date": "2025-06-02T01:27:43.458659",
+      "notes": "Patient is interested in Invisalign treatment"
+    },
+    "2": {
+      "patient_id": "2",
+      "first_name": "Emily",
+      "last_name": "Davis",
+      "date_of_birth": "1985-08-22",
+      "phone": "(555) 987-6543",
+      "email": "emily.davis@email.com",
+      "address": "456 Oak Ave, City, State 12345",
+      "emergency_contact": "Mike Davis",
+      "emergency_phone": "(555) 987-6544",
+      "insurance_provider": "HealthCare Partners",
+      "insurance_id": "HCP987654321",
+      "medical_history": "Diabetes Type 2, well controlled",
+      "allergies": "Penicillin",
+      "referral_source": "Online Search",
+      "created_date": "2025-06-02T01:27:43.458677",
+      "notes": "Requires traditional braces, complex case"
+    }
+  },
+  "treatment_plans": {
+    "1": {
+      "plan_id": "1",
+      "patient_id": "1",
+      "diagnosis": "Class II malocclusion with crowding",
+      "treatment_type": "Invisalign",
+      "start_date": "2024-06-01",
+      "estimated_duration_months": 18,
+      "total_cost": 5500.0,
+      "insurance_coverage": 1500.0,
+      "payment_plan": "Monthly payments of $250",
+      "treatment_goals": "Correct bite alignment and resolve crowding",
+      "appliances_needed": [
+        "Invisalign aligners",
+        "Retainers"
+      ],
+      "phases": [
+        "Initial alignment",
+        "Bite correction",
+        "Retention"
+      ],
+      "status": "Active",
+      "notes": "Patient compliance excellent",
+      "created_date": "2025-06-02T01:27:43.458682"
+    }
+  },
+  "appointments": {
+    "1": {
+      "appointment_id": "1",
+      "patient_id": "1",
+      "date": "2024-06-15",
+      "time": "10:00",
+      "duration_minutes": 60,
+      "appointment_type": "Follow-up",
+      "provider": "Dr. Smith",
+      "status": "Scheduled",
+      "notes": "Aligner check and adjustment",
+      "treatment_notes": "",
+      "next_appointment_recommended": "4 weeks"
+    }
+  },
+  "treatment_records": {},
+  "progress_photos": {},
+  "outcomes": {}
+}

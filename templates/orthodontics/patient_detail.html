@@ -1,0 +1,488 @@
+{% extends "orthodontics/base.html" %}
+
+{% block title %}{{ patient.first_name }} {{ patient.last_name }} - Robb's Demo{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Patient Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center">
+                                <div class="patient-avatar me-3">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width: 60px; height: 60px; font-size: 24px; font-weight: bold;">
+                                        {{ patient.first_name[0] }}{{ patient.last_name[0] }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h2 class="mb-1">{{ patient.first_name }} {{ patient.last_name }}</h2>
+                                    <div class="text-muted">
+                                        <i class="fas fa-birthday-cake me-2"></i>Born {{ patient.date_of_birth|strftime('%B %d, %Y') }}
+                                        <span class="mx-2">•</span>
+                                        <i class="fas fa-phone me-2"></i>{{ patient.phone }}
+                                        <span class="mx-2">•</span>
+                                        <i class="fas fa-envelope me-2"></i>{{ patient.email }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editPatientModal">
+                                    <i class="fas fa-edit me-2"></i>Edit Patient
+                                </button>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAppointmentModal">
+                                    <i class="fas fa-calendar-plus me-2"></i>Schedule Appointment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs mb-4" id="patientTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" 
+                    type="button" role="tab" aria-controls="overview" aria-selected="true">
+                <i class="fas fa-user me-2"></i>Overview
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="treatments-tab" data-bs-toggle="tab" data-bs-target="#treatments" 
+                    type="button" role="tab" aria-controls="treatments" aria-selected="false">
+                <i class="fas fa-teeth me-2"></i>Treatment Plans
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="appointments-tab" data-bs-toggle="tab" data-bs-target="#appointments" 
+                    type="button" role="tab" aria-controls="appointments" aria-selected="false">
+                <i class="fas fa-calendar me-2"></i>Appointments
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="records-tab" data-bs-toggle="tab" data-bs-target="#records" 
+                    type="button" role="tab" aria-controls="records" aria-selected="false">
+                <i class="fas fa-notes-medical me-2"></i>Treatment Records
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="photos-tab" data-bs-toggle="tab" data-bs-target="#photos" 
+                    type="button" role="tab" aria-controls="photos" aria-selected="false">
+                <i class="fas fa-camera me-2"></i>Progress Photos
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="patientTabsContent">
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Personal Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-bold">Full Name:</td>
+                                    <td>{{ patient.first_name }} {{ patient.last_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Date of Birth:</td>
+                                    <td>{{ patient.date_of_birth|strftime('%B %d, %Y') }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Phone:</td>
+                                    <td>{{ patient.phone }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Email:</td>
+                                    <td>{{ patient.email }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Address:</td>
+                                    <td>{{ patient.address or 'Not provided' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Emergency Contact:</td>
+                                    <td>{{ patient.emergency_contact or 'Not provided' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Emergency Phone:</td>
+                                    <td>{{ patient.emergency_phone or 'Not provided' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Insurance Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-bold">Insurance Provider:</td>
+                                    <td>{{ patient.insurance_provider or 'Not provided' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Insurance ID:</td>
+                                    <td>{{ patient.insurance_id or 'Not provided' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Referral Source:</td>
+                                    <td>{{ patient.referral_source or 'Not provided' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Patient Since:</td>
+                                    <td>{{ patient.created_date|strftime('%B %d, %Y') if patient.created_date else 'Unknown' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Medical History</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <strong>Medical History:</strong>
+                                <p class="mt-2">{{ patient.medical_history or 'No medical history recorded.' }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Allergies:</strong>
+                                <p class="mt-2">{{ patient.allergies or 'No allergies recorded.' }}</p>
+                            </div>
+                            <div>
+                                <strong>Notes:</strong>
+                                <p class="mt-2">{{ patient.notes or 'No additional notes.' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Treatment Plans Tab -->
+        <div class="tab-pane fade" id="treatments" role="tabpanel" aria-labelledby="treatments-tab">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Treatment Plans</h5>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTreatmentPlanModal">
+                    <i class="fas fa-plus me-2"></i>Add Treatment Plan
+                </button>
+            </div>
+            
+            {% if treatment_plans %}
+                {% for plan in treatment_plans %}
+                <div class="card shadow mb-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h6 class="card-title">{{ plan.treatment_type }}</h6>
+                                <p class="card-text">
+                                    <strong>Diagnosis:</strong> {{ plan.diagnosis }}<br>
+                                    <strong>Start Date:</strong> {{ plan.start_date|strftime('%B %d, %Y') }}<br>
+                                    <strong>Duration:</strong> {{ plan.estimated_duration_months }} months<br>
+                                    <strong>Goals:</strong> {{ plan.treatment_goals or 'Not specified' }}
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="mb-2">
+                                    {% if plan.status == 'Active' %}
+                                        <span class="badge bg-success">{{ plan.status }}</span>
+                                    {% elif plan.status == 'Planned' %}
+                                        <span class="badge bg-info">{{ plan.status }}</span>
+                                    {% elif plan.status == 'Completed' %}
+                                        <span class="badge bg-primary">{{ plan.status }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ plan.status }}</span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <strong>${{ "%.2f"|format(plan.total_cost) }}</strong>
+                                    {% if plan.insurance_coverage > 0 %}
+                                        <br><small class="text-muted">Insurance: ${{ "%.2f"|format(plan.insurance_coverage) }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-teeth fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No treatment plans yet</h5>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTreatmentPlanModal">
+                        Create First Treatment Plan
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Appointments Tab -->
+        <div class="tab-pane fade" id="appointments" role="tabpanel" aria-labelledby="appointments-tab">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Appointments</h5>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAppointmentModal">
+                    <i class="fas fa-calendar-plus me-2"></i>Schedule Appointment
+                </button>
+            </div>
+            
+            {% if appointments %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Type</th>
+                                <th>Provider</th>
+                                <th>Status</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in appointments %}
+                            <tr>
+                                <td>{{ appointment.date|strftime('%b %d, %Y') }}</td>
+                                <td>{{ appointment.time }}</td>
+                                <td>{{ appointment.appointment_type }}</td>
+                                <td>{{ appointment.provider }}</td>
+                                <td>
+                                    {% if appointment.status == 'Scheduled' %}
+                                        <span class="badge bg-info">{{ appointment.status }}</span>
+                                    {% elif appointment.status == 'Completed' %}
+                                        <span class="badge bg-success">{{ appointment.status }}</span>
+                                    {% elif appointment.status == 'Cancelled' %}
+                                        <span class="badge bg-danger">{{ appointment.status }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ appointment.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ appointment.notes[:50] + '...' if appointment.notes and appointment.notes|length > 50 else appointment.notes or '-' }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No appointments scheduled</h5>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAppointmentModal">
+                        Schedule First Appointment
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Treatment Records Tab -->
+        <div class="tab-pane fade" id="records" role="tabpanel" aria-labelledby="records-tab">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Treatment Records</h5>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRecordModal">
+                    <i class="fas fa-plus me-2"></i>Add Record
+                </button>
+            </div>
+            
+            {% if treatment_records %}
+                {% for record in treatment_records %}
+                <div class="card shadow mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="card-title">{{ record.procedure_type }}</h6>
+                                <p class="text-muted mb-2">{{ record.date|strftime('%B %d, %Y') }} - {{ record.provider }}</p>
+                                <p class="card-text">{{ record.description }}</p>
+                                {% if record.next_steps %}
+                                    <p class="card-text"><strong>Next Steps:</strong> {{ record.next_steps }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="text-end">
+                                {% if record.cost %}
+                                    <strong>${{ "%.2f"|format(record.cost) }}</strong>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-notes-medical fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No treatment records</h5>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRecordModal">
+                        Add First Record
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Progress Photos Tab -->
+        <div class="tab-pane fade" id="photos" role="tabpanel" aria-labelledby="photos-tab">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Progress Photos</h5>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPhotoModal">
+                    <i class="fas fa-camera me-2"></i>Add Photos
+                </button>
+            </div>
+            
+            {% if progress_photos %}
+                <div class="row">
+                    {% for photo in progress_photos %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card shadow">
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                            <div class="card-body">
+                                <h6 class="card-title">{{ photo.photo_type }}</h6>
+                                <p class="card-text">
+                                    <small class="text-muted">{{ photo.date|strftime('%B %d, %Y') }}</small><br>
+                                    {{ photo.notes or 'No notes' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-camera fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No progress photos</h5>
+                    <p class="text-muted">Progress photos help track treatment outcomes</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPhotoModal">
+                        Add First Photos
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Appointment Modal -->
+<div class="modal fade" id="addAppointmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Schedule Appointment for {{ patient.first_name }} {{ patient.last_name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="appointmentForm">
+                <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="appointment_date" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="appointment_date" name="date" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="appointment_time" class="form-label">Time</label>
+                                <input type="time" class="form-control" id="appointment_time" name="time" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="appointment_type" class="form-label">Appointment Type</label>
+                                <select class="form-select" id="appointment_type" name="appointment_type" required>
+                                    <option value="">Select Type</option>
+                                    <option value="Consultation">Initial Consultation</option>
+                                    <option value="Follow-up">Follow-up</option>
+                                    <option value="Adjustment">Adjustment</option>
+                                    <option value="Emergency">Emergency</option>
+                                    <option value="Removal">Removal</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="duration" class="form-label">Duration (minutes)</label>
+                                <select class="form-select" id="duration" name="duration_minutes">
+                                    <option value="30">30 minutes</option>
+                                    <option value="45">45 minutes</option>
+                                    <option value="60" selected>1 hour</option>
+                                    <option value="90">1.5 hours</option>
+                                    <option value="120">2 hours</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="appointment_notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="appointment_notes" name="notes" rows="3"
+                                  placeholder="Any special instructions or notes for this appointment..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Schedule Appointment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form submission handlers
+document.getElementById('appointmentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    fetch('/api/appointments', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + result.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while scheduling the appointment.');
+    });
+});
+
+// Set minimum date to today for appointment scheduling
+document.getElementById('appointment_date').min = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}

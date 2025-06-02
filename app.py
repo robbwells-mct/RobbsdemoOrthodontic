@@ -5,6 +5,33 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+# Add a custom filter for JavaScript escaping
+@app.template_filter('escapejs')
+def escapejs_filter(text):
+    """Escape text for safe use in JavaScript strings."""
+    if text is None:
+        return ''
+    return (str(text)
+            .replace('\\', '\\\\')
+            .replace("'", "\\'")
+            .replace('"', '\\"')
+            .replace('\n', '\\n')
+            .replace('\r', '\\r')
+            .replace('\t', '\\t'))
+
+# Add a custom filter for date formatting
+@app.template_filter('strftime')
+def strftime_filter(date_string, format_string):
+    """Format a date string using strftime format."""
+    if date_string is None:
+        return ''
+    try:
+        from datetime import datetime
+        date_obj = datetime.strptime(date_string, '%Y-%m-%d')
+        return date_obj.strftime(format_string)
+    except (ValueError, TypeError):
+        return date_string
+
 class Patient:
     def __init__(self, patient_id, name, phone, email, dob, insurance=""):
         self.patient_id = patient_id
@@ -120,13 +147,35 @@ def index():
     return render_template('index.html')
 
 @app.route('/schedule')
+"""
+Handles the '/schedule' route to display appointment schedules.
+Depending on the 'view' query parameter, this function supports two modes:
+- 'day': Displays appointments for a single selected date.
+- 'range': Displays appointments for a 4-week range starting from the selected date.
+Query Parameters:
+    view (str): Determines the view type ('day' or 'range'). Defaults to 'day'.
+    date (str): The selected date in 'YYYY-MM-DD' format. Defaults to today's date.
+Returns:
+    Renders the 'schedule.html' template with the following context:
+        - For 'range' view:
+            range_appointments (dict): Appointments grouped by date within the range.
+            selected_date (str): The selected start date.
+            view_type (str): The current view type.
+            start_date (str): The start date of the range.
+            end_date (str): The end date of the range.
+        - For 'day' view:
+            appointments (list): List of appointments for the selected date.
+            selected_date (str): The selected date.
+            view_type (str): The current view type.
+"""
 def schedule():
+    from datetime import timedelta
+    
     view_type = request.args.get('view', 'day')  # 'day' or 'range'
     selected_date = request.args.get('date', datetime.now().strftime("%Y-%m-%d"))
     
     if view_type == 'range':
         # Get date range (next 4 weeks from selected date)
-        from datetime import datetime, timedelta
         start_date = datetime.strptime(selected_date, "%Y-%m-%d")
         end_date = start_date + timedelta(weeks=4)
         

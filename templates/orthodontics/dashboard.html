@@ -1,0 +1,351 @@
+{% extends "orthodontics/base.html" %}
+
+{% block title %}Dashboard - Robb's Demo - Welcome to Your Orthodontics Practice{% endblock %}
+
+{% block content %}
+<div class="col-12">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="bg-primary text-white rounded p-4">
+                <h1 class="display-6 mb-2">
+                    <i class="fas fa-tooth me-3"></i>
+                    Robb's Demo - Welcome to Your Orthodontics Practice
+                </h1>
+                <p class="lead mb-0">Comprehensive patient care and treatment management demonstration system.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-3x mb-3"></i>
+                    <h3 class="mb-1">{{ total_patients }}</h3>
+                    <p class="card-text">Total Patients</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-procedures fa-3x mb-3"></i>
+                    <h3 class="mb-1">{{ active_treatments }}</h3>
+                    <p class="card-text">Active Treatments</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-3x mb-3"></i>
+                    <h3 class="mb-1">{{ today_appointments }}</h3>
+                    <p class="card-text">Today's Appointments</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-3x mb-3"></i>
+                    <h3 class="mb-1">98%</h3>
+                    <p class="card-text">Success Rate</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-primary w-100" onclick="showAddPatientModal()">
+                                <i class="fas fa-user-plus me-2"></i>Add New Patient
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('schedule') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-calendar-plus me-2"></i>Schedule Appointment
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-outline-success w-100" onclick="showTreatmentPlanModal()">
+                                <i class="fas fa-clipboard-list me-2"></i>Create Treatment Plan
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('outcomes') }}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-camera me-2"></i>Record Progress
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity and Upcoming Appointments -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock me-2"></i>Recent Patients
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_patients %}
+                    <div class="list-group list-group-flush">
+                        {% for patient in recent_patients %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <div>
+                                <h6 class="mb-1">{{ patient.first_name }} {{ patient.last_name }}</h6>
+                                <small class="text-muted">Added: {{ patient.created_date[:10] }}</small>
+                            </div>
+                            <a href="{{ url_for('patient_detail', patient_id=patient.patient_id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No patients yet. Add your first patient to get started!</p>
+                        <button class="btn btn-primary" onclick="showAddPatientModal()">
+                            <i class="fas fa-user-plus me-2"></i>Add First Patient
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar-day me-2"></i>Today's Schedule
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if today_appointments > 0 %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        You have {{ today_appointments }} appointment{{ 's' if today_appointments != 1 else '' }} scheduled for today.
+                    </div>
+                    <a href="{{ url_for('schedule') }}" class="btn btn-primary">
+                        <i class="fas fa-calendar-day me-2"></i>View Today's Schedule
+                    </a>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No appointments scheduled for today.</p>
+                        <a href="{{ url_for('schedule') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-calendar-plus me-2"></i>Schedule Appointment
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Treatment Overview -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Practice Overview
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="border rounded p-3">
+                                <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                                <h6>Patient Management</h6>
+                                <p class="text-muted small">Comprehensive patient records with medical history, treatment plans, and progress tracking.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="border rounded p-3">
+                                <i class="fas fa-calendar-alt fa-2x text-success mb-2"></i>
+                                <h6>Smart Scheduling</h6>
+                                <p class="text-muted small">Efficient appointment scheduling with automated reminders and conflict detection.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="border rounded p-3">
+                                <i class="fas fa-chart-line fa-2x text-info mb-2"></i>
+                                <h6>Treatment Analytics</h6>
+                                <p class="text-muted small">Track treatment outcomes, success rates, and patient satisfaction metrics.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Patient Modal -->
+<div class="modal fade" id="addPatientModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-2"></i>Add New Patient
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPatientForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName" class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="firstName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName" class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" id="lastName" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="dateOfBirth" class="form-label">Date of Birth *</label>
+                            <input type="date" class="form-control" id="dateOfBirth" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Phone Number *</label>
+                            <input type="tel" class="form-control" id="phone" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="insuranceProvider" class="form-label">Insurance Provider</label>
+                            <input type="text" class="form-control" id="insuranceProvider">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="emergencyContact" class="form-label">Emergency Contact</label>
+                            <input type="text" class="form-control" id="emergencyContact">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="emergencyPhone" class="form-label">Emergency Phone</label>
+                            <input type="tel" class="form-control" id="emergencyPhone">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="medicalHistory" class="form-label">Medical History</label>
+                        <textarea class="form-control" id="medicalHistory" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="allergies" class="form-label">Allergies</label>
+                        <textarea class="form-control" id="allergies" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addPatient()">Add Patient</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showAddPatientModal() {
+    const modal = new bootstrap.Modal(document.getElementById('addPatientModal'));
+    modal.show();
+}
+
+function showTreatmentPlanModal() {
+    showWarning('Treatment plan creation feature coming soon!');
+}
+
+function addPatient() {
+    const form = document.getElementById('addPatientForm');
+    const formData = new FormData(form);
+    
+    const patientData = {
+        first_name: document.getElementById('firstName').value,
+        last_name: document.getElementById('lastName').value,
+        date_of_birth: document.getElementById('dateOfBirth').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        address: document.getElementById('address').value,
+        emergency_contact: document.getElementById('emergencyContact').value,
+        emergency_phone: document.getElementById('emergencyPhone').value,
+        insurance_provider: document.getElementById('insuranceProvider').value,
+        medical_history: document.getElementById('medicalHistory').value,
+        allergies: document.getElementById('allergies').value,
+        referral_source: ''
+    };
+    
+    // Validate required fields
+    if (!patientData.first_name || !patientData.last_name || !patientData.date_of_birth || !patientData.phone) {
+        showError('Please fill in all required fields.');
+        return;
+    }
+    
+    fetch('/api/patients', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(patientData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('Patient added successfully!');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addPatientModal'));
+            modal.hide();
+            form.reset();
+            // Refresh the page to show the new patient
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showError(data.error || 'Failed to add patient');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showError('Failed to add patient');
+    });
+}
+</script>
+{% endblock %}

@@ -206,7 +206,11 @@ function setToday() {
 }
 
 function switchView(viewType) {
-    const currentDate = {% if view_type != 'range' %}document.getElementById('scheduleDate').value{% else %}'{{ selected_date }}'{% endif %};
+    {% if view_type != 'range' %}
+    const currentDate = document.getElementById('scheduleDate').value;
+    {% else %}
+    const currentDate = '{{ selected_date }}';
+    {% endif %}
     window.location.href = `{{ url_for('schedule') }}?view=${viewType}&date=${currentDate}`;
 }
 

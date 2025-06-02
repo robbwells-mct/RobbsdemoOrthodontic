@@ -20,8 +20,18 @@
       "reason": "Annual Physical",
       "status": "Scheduled",
       "notes": ""
+    },
+    "2": {
+      "apt_id": 2,
+      "patient_id": 1,
+      "date": "2025-05-30",
+      "time": "13:30",
+      "duration": 30,
+      "reason": "Vaccination",
+      "status": "Scheduled",
+      "notes": ""
     }
   },
   "next_patient_id": 2,
-  "next_apt_id": 2
+  "next_apt_id": 3
 }

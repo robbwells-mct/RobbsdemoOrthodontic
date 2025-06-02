@@ -1,0 +1,422 @@
+{% extends "orthodontics/base.html" %}
+
+{% block title %}Schedule - Robb's Demo - Welcome to Your Orthodontics Practice{% endblock %}
+
+{% block content %}
+<div class="col-12">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        {% if view_type == 'week' %}
+                        <i class="fas fa-calendar-week me-2"></i>Weekly Schedule
+                        {% else %}
+                        <i class="fas fa-calendar-day me-2"></i>Daily Schedule
+                        {% endif %}
+                    </h5>
+                    <div class="d-flex align-items-center">
+                        <!-- View Toggle -->
+                        <div class="btn-group me-3" role="group">
+                            <button type="button" class="btn btn-outline-primary {% if view_type != 'week' %}active{% endif %}" 
+                                    onclick="switchView('day')">
+                                <i class="fas fa-calendar-day me-1"></i>Day
+                            </button>
+                            <button type="button" class="btn btn-outline-primary {% if view_type == 'week' %}active{% endif %}" 
+                                    onclick="switchView('week')">
+                                <i class="fas fa-calendar-week me-1"></i>Week
+                            </button>
+                        </div>
+                        
+                        <!-- Date Navigation -->
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-outline-secondary me-2" onclick="navigateDate(-1)">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            
+                            <input type="date" class="form-control me-2" id="scheduleDate" 
+                                   value="{{ selected_date }}" onchange="changeDate()">
+                            
+                            <button class="btn btn-outline-secondary me-3" onclick="navigateDate(1)">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            
+                            <button class="btn btn-primary" onclick="showScheduleModal()">
+                                <i class="fas fa-plus me-2"></i>New Appointment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Content -->
+    <div class="row">
+        <div class="col-12">
+            {% if view_type == 'week' %}
+            <!-- Week View -->
+            <div class="row">
+                {% for date, appointments in week_appointments.items() %}
+                <div class="col-lg-6 col-xl-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-calendar me-2"></i>
+                                {{ date | strftime('%A, %B %d') }}
+                                <span class="badge bg-primary ms-2">{{ appointments|length }}</span>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% if appointments %}
+                            <div class="timeline">
+                                {% for apt in appointments %}
+                                <div class="timeline-item">
+                                    <div class="card appointment-card mb-2">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <h6 class="mb-1">{{ apt.patient_name }}</h6>
+                                                    <p class="mb-1 text-muted">
+                                                        <i class="fas fa-clock me-1"></i>{{ apt.time }} 
+                                                        ({{ apt.duration_minutes }}min)
+                                                    </p>
+                                                    <p class="mb-0 small">
+                                                        <i class="fas fa-stethoscope me-1"></i>{{ apt.appointment_type }}
+                                                    </p>
+                                                </div>
+                                                <div class="text-end">
+                                                    <span class="badge bg-{% if apt.status == 'Scheduled' %}primary{% elif apt.status == 'Confirmed' %}success{% elif apt.status == 'Completed' %}secondary{% elif apt.status == 'No-Show' %}danger{% else %}warning{% endif %}">
+                                                        {{ apt.status }}
+                                                    </span>
+                                                    <div class="mt-2">
+                                                        <button class="btn btn-sm btn-outline-primary" 
+                                                                onclick="editAppointment('{{ apt.appointment_id }}')">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-3">
+                                <i class="fas fa-calendar-times fa-2x text-muted mb-2"></i>
+                                <p class="text-muted mb-0">No appointments</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Day View -->
+            <div class="card">
+                <div class="card-body">
+                    {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Contact</th>
+                                    <th>Type</th>
+                                    <th>Duration</th>
+                                    <th>Provider</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for apt in appointments %}
+                                <tr>
+                                    <td><strong>{{ apt.time }}</strong></td>
+                                    <td>{{ apt.patient_name }}</td>
+                                    <td>{{ apt.patient_phone }}</td>
+                                    <td>{{ apt.appointment_type }}</td>
+                                    <td>{{ apt.duration_minutes }} min</td>
+                                    <td>{{ apt.provider }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if apt.status == 'Scheduled' %}primary{% elif apt.status == 'Confirmed' %}success{% elif apt.status == 'Completed' %}secondary{% elif apt.status == 'No-Show' %}danger{% else %}warning{% endif %}">
+                                            {{ apt.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="editAppointment('{{ apt.appointment_id }}')" 
+                                                    title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" 
+                                                    onclick="startTreatment('{{ apt.appointment_id }}')" 
+                                                    title="Start Treatment">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info" 
+                                                    onclick="viewPatient('{{ apt.patient_id }}')" 
+                                                    title="View Patient">
+                                                <i class="fas fa-user"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No appointments scheduled for {{ selected_date | strftime('%B %d, %Y') }}</h5>
+                        <p class="text-muted">Schedule your first appointment to get started.</p>
+                        <button class="btn btn-primary" onclick="showScheduleModal()">
+                            <i class="fas fa-plus me-2"></i>Schedule Appointment
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Appointment Modal -->
+<div class="modal fade" id="scheduleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-calendar-plus me-2"></i>Schedule New Appointment
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="scheduleForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="patientSelect" class="form-label">Patient *</label>
+                            <select class="form-select" id="patientSelect" required>
+                                <option value="">Select a patient...</option>
+                                <!-- Will be populated by JavaScript -->
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="appointmentDate" class="form-label">Date *</label>
+                            <input type="date" class="form-control" id="appointmentDate" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="appointmentTime" class="form-label">Time *</label>
+                            <select class="form-select" id="appointmentTime" required>
+                                <option value="">Select time...</option>
+                                <!-- Time slots will be generated -->
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="duration" class="form-label">Duration (minutes)</label>
+                            <select class="form-select" id="duration">
+                                <option value="30">30 minutes</option>
+                                <option value="60" selected>1 hour</option>
+                                <option value="90">1.5 hours</option>
+                                <option value="120">2 hours</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="appointmentType" class="form-label">Appointment Type *</label>
+                            <select class="form-select" id="appointmentType" required>
+                                <option value="">Select type...</option>
+                                <option value="Initial Consultation">Initial Consultation</option>
+                                <option value="Treatment Planning">Treatment Planning</option>
+                                <option value="Braces Installation">Braces Installation</option>
+                                <option value="Adjustment">Adjustment</option>
+                                <option value="Progress Check">Progress Check</option>
+                                <option value="Retainer Fitting">Retainer Fitting</option>
+                                <option value="Emergency">Emergency</option>
+                                <option value="Follow-up">Follow-up</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="provider" class="form-label">Provider</label>
+                            <select class="form-select" id="provider">
+                                <option value="Dr. Smith" selected>Dr. Smith</option>
+                                <option value="Dr. Johnson">Dr. Johnson</option>
+                                <option value="Dr. Williams">Dr. Williams</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="appointmentNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="appointmentNotes" rows="3" 
+                                  placeholder="Any special instructions or notes for this appointment..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="scheduleAppointment()">
+                    <i class="fas fa-save me-2"></i>Schedule Appointment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Generate time slots
+function generateTimeSlots() {
+    const timeSelect = document.getElementById('appointmentTime');
+    timeSelect.innerHTML = '<option value="">Select time...</option>';
+    
+    for (let hour = 8; hour < 18; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+            const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+            const displayTime = formatTime12Hour(timeStr);
+            timeSelect.innerHTML += `<option value="${timeStr}">${displayTime}</option>`;
+        }
+    }
+}
+
+function formatTime12Hour(time24) {
+    const [hours, minutes] = time24.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+}
+
+function loadPatients() {
+    // For now, we'll add some dummy patients
+    const patientSelect = document.getElementById('patientSelect');
+    patientSelect.innerHTML = '<option value="">Select a patient...</option>';
+    
+    // In a real implementation, this would fetch from the server
+    const dummyPatients = [
+        {id: '1', name: 'John Doe'},
+        {id: '2', name: 'Jane Smith'},
+        {id: '3', name: 'Mike Johnson'}
+    ];
+    
+    dummyPatients.forEach(patient => {
+        patientSelect.innerHTML += `<option value="${patient.id}">${patient.name}</option>`;
+    });
+}
+
+function showScheduleModal() {
+    generateTimeSlots();
+    loadPatients();
+    
+    // Set default date to selected date
+    const selectedDate = document.getElementById('scheduleDate').value;
+    document.getElementById('appointmentDate').value = selectedDate;
+    
+    const modal = new bootstrap.Modal(document.getElementById('scheduleModal'));
+    modal.show();
+}
+
+function scheduleAppointment() {
+    const appointmentData = {
+        patient_id: document.getElementById('patientSelect').value,
+        date: document.getElementById('appointmentDate').value,
+        time: document.getElementById('appointmentTime').value,
+        duration_minutes: parseInt(document.getElementById('duration').value),
+        appointment_type: document.getElementById('appointmentType').value,
+        provider: document.getElementById('provider').value,
+        notes: document.getElementById('appointmentNotes').value
+    };
+    
+    // Validate required fields
+    if (!appointmentData.patient_id || !appointmentData.date || !appointmentData.time || !appointmentData.appointment_type) {
+        showError('Please fill in all required fields.');
+        return;
+    }
+    
+    fetch('/api/appointments', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(appointmentData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('Appointment scheduled successfully!');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('scheduleModal'));
+            modal.hide();
+            document.getElementById('scheduleForm').reset();
+            // Refresh the page to show the new appointment
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showError(data.error || 'Failed to schedule appointment');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showError('Failed to schedule appointment. Please try again.');
+    });
+}
+
+function switchView(viewType) {
+    const currentDate = document.getElementById('scheduleDate').value;
+    window.location.href = `{{ url_for('schedule') }}?view=${viewType}&date=${currentDate}`;
+}
+
+function changeDate() {
+    const date = document.getElementById('scheduleDate').value;
+    const currentView = '{{ view_type }}';
+    window.location.href = `{{ url_for('schedule') }}?view=${currentView}&date=${date}`;
+}
+
+function navigateDate(days) {
+    const currentDate = new Date(document.getElementById('scheduleDate').value);
+    const viewType = '{{ view_type }}';
+    
+    if (viewType === 'week') {
+        currentDate.setDate(currentDate.getDate() + (days * 7));
+    } else {
+        currentDate.setDate(currentDate.getDate() + days);
+    }
+    
+    const newDate = currentDate.toISOString().split('T')[0];
+    window.location.href = `{{ url_for('schedule') }}?view=${viewType}&date=${newDate}`;
+}
+
+function editAppointment(appointmentId) {
+    showWarning('Appointment editing feature coming soon!');
+}
+
+function startTreatment(appointmentId) {
+    showWarning('Treatment recording feature coming soon!');
+}
+
+function viewPatient(patientId) {
+    window.location.href = `/patient/${patientId}`;
+}
+
+// Set today as default if no date is selected
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('scheduleDate');
+    if (!dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+});
+</script>
+{% endblock %}
